@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Perfect Test - 音感测试</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <span class="logo">⚡ PITCH PERFECT</span>
+            <a href="dashboard.html" class="nav-link">DASHBOARD</a>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-link">SIGN UP</a>
+            <a href="#" class="nav-link">LOGIN</a>
+        </div>
+    </nav>
+
+    <!-- 主页面 -->
+    <div class="container">
+        <div class="welcome-section">
+            <div class="icon-circle">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="3"/>
+                    <circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="3"/>
+                    <circle cx="60" cy="60" r="20" fill="white"/>
+                </svg>
+            </div>
+            
+            <h1>音感测试</h1>
+            <p class="subtitle">测试你的音乐听音能力</p>
+            
+            <div class="level-selection">
+                <h2>选择关卡</h2>
+                <div class="level-grid">
+                    <button class="level-btn" onclick="startTest(1)">
+                        <span class="level-number">1</span>
+                        <span class="level-name">单音识别</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(2)">
+                        <span class="level-number">2</span>
+                        <span class="level-name">音高对比</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(3)">
+                        <span class="level-number">3</span>
+                        <span class="level-name">音高距离感知</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(4)">
+                        <span class="level-number">4</span>
+                        <span class="level-name">旋律记忆</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(5)">
+                        <span class="level-number">5</span>
+                        <span class="level-name">双音同时识别</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(6)">
+                        <span class="level-number">6</span>
+                        <span class="level-name">节奏识别</span>
+                    </button>
+                    <button class="level-btn" onclick="startTest(7)">
+                        <span class="level-number">7</span>
+                        <span class="level-name">绝对音高挑战</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试结果 - Pitch Perfect</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <span class="logo">⚡ PITCH PERFECT</span>
+            <a href="dashboard.html" class="nav-link">DASHBOARD</a>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-link">SIGN UP</a>
+            <a href="#" class="nav-link">LOGIN</a>
+        </div>
+    </nav>
+
+    <!-- 结果页面 -->
+    <div class="results-container">
+        <div class="results-icon">
+            <svg width="150" height="150" viewBox="0 0 150 150">
+                <circle cx="75" cy="75" r="60" fill="none" stroke="white" stroke-width="4"/>
+                <circle cx="75" cy="75" r="45" fill="none" stroke="white" stroke-width="4"/>
+                <circle cx="75" cy="75" r="30" fill="none" stroke="white" stroke-width="4"/>
+                <circle cx="75" cy="75" r="15" fill="white"/>
+            </svg>
+        </div>
+
+        <h2 class="results-title" id="resultsTitle">测试完成</h2>
+
+        <div class="score-display">
+            <p class="score-label">正确率</p>
+            <p class="score-value" id="scoreValue">80%</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <p class="stat-label">答对题数</p>
+                <p class="stat-value" id="correctCount">8 / 10</p>
+            </div>
+            <div class="stat-item">
+                <p class="stat-label">平均反应时间</p>
+                <p class="stat-value" id="avgTime">2.5s</p>
+            </div>
+            <div class="stat-item">
+                <p class="stat-label">使用生命</p>
+                <p class="stat-value" id="livesUsed">1 / 2</p>
+            </div>
+            <div class="stat-item">
+                <p class="stat-label">达到关卡</p>
+                <p class="stat-value" id="levelReached">Level 3</p>
+            </div>
+        </div>
+
+        <p class="save-prompt">保存你的成绩以查看排名</p>
+
+        <div class="results-buttons">
+            <button class="btn-save" onclick="saveScore()">Save score</button>
+            <button class="btn-retry" onclick="tryAgain()">Try again</button>
+        </div>
+    </div>
+
+    <!-- 音量控制 -->
+    <div class="volume-control">
+        <button id="volumeBtn" onclick="toggleVolume()">🔊</button>
+    </div>
+
+    <script src="js/results.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试进行中 - Pitch Perfect</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <span class="logo">⚡ PITCH PERFECT</span>
+            <a href="dashboard.html" class="nav-link">DASHBOARD</a>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-link">SIGN UP</a>
+            <a href="#" class="nav-link">LOGIN</a>
+        </div>
+    </nav>
+
+    <!-- 游戏界面 -->
+    <div class="game-container">
+        <!-- 顶部信息栏 -->
+        <div class="game-header">
+            <div class="lives">
+                <span class="life-label">生命：</span>
+                <span id="livesDisplay">❤️ ❤️</span>
+            </div>
+            <div class="progress">
+                <span id="questionNumber">1</span> / <span id="totalQuestions">10</span>
+            </div>
+            <div class="level-info">
+                <span id="levelName">Level 1: 单音识别</span>
+            </div>
+        </div>
+
+        <!-- 音频播放状态 -->
+        <div class="audio-status" id="audioStatus">
+            <div class="audio-icon">🔊</div>
+            <p>正在播放音频...</p>
+        </div>
+
+        <!-- 选项区域 -->
+        <div class="options-container" id="optionsContainer">
+            <!-- 动态生成选项 -->
+        </div>
+
+        <!-- 提交按钮 -->
+        <button class="submit-btn" id="submitBtn" disabled>Next</button>
+    </div>
+
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
