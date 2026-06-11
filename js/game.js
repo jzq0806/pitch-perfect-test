@@ -168,23 +168,23 @@ class PitchTestGame {
         
         const distance = audioEngine.getNoteDistance(note1, note2);
         
-        // 分类距离
-        if (distance <= 2) {
-            this.correctAnswer = 'close';
-        } else if (distance <= 4) {
-            this.correctAnswer = 'medium';
+        // 更精确的距离分类
+        if (distance === 1) {
+            this.correctAnswer = 'close';  // 半音或全音
+        } else if (distance === 2 || distance === 3) {
+            this.correctAnswer = 'medium'; // 小三度到纯四度
         } else {
-            this.correctAnswer = 'far';
+            this.correctAnswer = 'far';    // 纯五度以上
         }
         
         const duration = await audioEngine.playTwoNotes(note1, note2, 4);
         await this.sleep(duration);
     }
 
-    // Level 5: 旋律记忆
+    // Level 5: 旋律记忆（提升难度）
     async playLevel5Audio() {
         const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-        const melodyLength = 3 + Math.floor(Math.random() * 3); // 3-5个音
+        const melodyLength = 4 + Math.floor(Math.random() * 4); // 4-7个音（增加长度）
         
         const melody1 = [];
         for (let i = 0; i < melodyLength; i++) {
@@ -200,18 +200,29 @@ class PitchTestGame {
             this.correctAnswer = 'same';
         } else {
             melody2 = [...melody1];
-            const changeIndex = Math.floor(Math.random() * melodyLength);
-            let newNote = notes[Math.floor(Math.random() * notes.length)];
-            while (newNote === melody2[changeIndex]) {
-                newNote = notes[Math.floor(Math.random() * notes.length)];
+            // 可能改变1-2个音符
+            const changeCount = Math.random() < 0.7 ? 1 : 2;
+            const changedIndices = new Set();
+            
+            for (let i = 0; i < changeCount; i++) {
+                let changeIndex;
+                do {
+                    changeIndex = Math.floor(Math.random() * melodyLength);
+                } while (changedIndices.has(changeIndex));
+                
+                changedIndices.add(changeIndex);
+                let newNote = notes[Math.floor(Math.random() * notes.length)];
+                while (newNote === melody2[changeIndex]) {
+                    newNote = notes[Math.floor(Math.random() * notes.length)];
+                }
+                melody2[changeIndex] = newNote;
             }
-            melody2[changeIndex] = newNote;
             this.correctAnswer = 'different';
         }
         
         // 播放第一段旋律
         const duration1 = await audioEngine.playMelody(melody1, 4);
-        await this.sleep(duration1 + 800);
+        await this.sleep(duration1 + 600); // 减少间隔时间
         
         // 播放第二段旋律
         const duration2 = await audioEngine.playMelody(melody2, 4);
@@ -238,24 +249,28 @@ class PitchTestGame {
         await this.sleep(duration2);
     }
 
-    // Level 7: 节奏识别
+    // Level 7: 节奏识别（提升难度）
     async playLevel7Audio() {
         const rhythmPatterns = [
-            [1, 1, 1, 1],           // 均匀四拍
-            [2, 1, 1],              // 长短短
-            [1, 1, 2],              // 短短长
-            [1, 0.5, 0.5, 1],       // 短-快快-短
-            [2, 2],                 // 长长
-            [0.5, 0.5, 0.5, 0.5, 1] // 快快快快-短
+            [1, 1, 1, 1],                    // 均匀四拍
+            [2, 1, 1],                       // 长短短
+            [1, 1, 2],                       // 短短长
+            [1, 0.5, 0.5, 1],                // 短-快快-短
+            [2, 2],                          // 长长
+            [0.5, 0.5, 0.5, 0.5, 1],         // 快快快快-短
+            [1, 0.5, 0.5, 0.5, 0.5, 1],      // 短-快快快快-短（新增）
+            [0.5, 0.5, 1, 0.5, 0.5, 1],      // 快快-短-快快-短（新增）
+            [1.5, 0.5, 1, 1],                // 附点-快-短-短（新增）
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1] // 快快快快快快-短（新增）
         ];
         
         const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
         this.correctAnswer = patternIndex;
         
         const duration = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
-        await this.sleep(duration + 500);
+        await this.sleep(duration + 400); // 减少间隔
         
-        // 重复一次
+        // 只播放一次（增加难度）
         const duration2 = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
         await this.sleep(duration2);
     }
@@ -409,14 +424,25 @@ class PitchTestGame {
             { text: '♩ ♩ ♩.', value: 2 },
             { text: '♩ ♪♪ ♩', value: 3 },
             { text: '♩. ♩.', value: 4 },
-            { text: '♪♪♪♪ ♩', value: 5 }
+            { text: '♪♪♪♪ ♩', value: 5 },
+            { text: '♩ ♪♪♪♪ ♩', value: 6 },
+            { text: '♪♪ ♩ ♪♪ ♩', value: 7 },
+            { text: '♩. ♪ ♩ ♩', value: 8 },
+            { text: '♪♪♪♪♪♪ ♩', value: 9 }
         ];
+        
+        // 创建一个滚动容器来容纳更多选项
+        container.style.flexWrap = 'wrap';
+        container.style.maxHeight = '400px';
+        container.style.overflowY = 'auto';
         
         rhythms.forEach(rhythm => {
             const rect = document.createElement('div');
             rect.className = 'option-rect';
             rect.textContent = rhythm.text;
             rect.dataset.value = rhythm.value;
+            rect.style.minWidth = '180px';
+            rect.style.margin = '10px';
             
             rect.addEventListener('click', () => {
                 this.selectOption(rect);
