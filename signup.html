@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Pitch Perfect Test</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container {
+            max-width: 450px;
+            margin: 100px auto;
+            padding: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-container h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 36px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: rgba(248, 113, 113, 0.2);
+            border: 1px solid rgba(248, 113, 113, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            color: #86efac;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 25px;
+            opacity: 0.8;
+        }
+
+        .auth-links a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .auth-links a:hover {
+            opacity: 0.8;
+        }
+
+        .password-hint {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <span class="logo">⚡ PITCH PERFECT</span>
+            <a href="index.html" class="nav-link">首页</a>
+            <a href="dashboard.html" class="nav-link">DASHBOARD</a>
+        </div>
+        <div class="nav-right">
+            <a href="signup.html" class="nav-link">SIGN UP</a>
+            <a href="login.html" class="nav-link">LOGIN</a>
+        </div>
+    </nav>
+
+    <!-- 注册表单 -->
+    <div class="auth-container">
+        <h1>注册</h1>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="email">邮箱</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" placeholder="至少6位" required>
+                <div class="password-hint">密码至少需要6个字符</div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="再次输入密码" required>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">注册</button>
+        </form>
+
+        <div class="auth-links">
+            已有账号？<a href="login.html">立即登录</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import authManager from './js/auth.js';
+
+        const signupForm = document.getElementById('signupForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // 隐藏之前的消息
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // 验证密码
+            if (password !== confirmPassword) {
+                errorMessage.textContent = '两次输入的密码不一致';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorMessage.textContent = '密码至少需要6个字符';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // 禁用按钮
+            submitBtn.disabled = true;
+            submitBtn.textContent = '注册中...';
+
+            // 尝试注册
+            const result = await authManager.signUp(email, password);
+
+            if (result.success) {
+                successMessage.textContent = '注册成功！正在跳转...';
+                successMessage.style.display = 'block';
+                
+                // 跳转到首页
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                errorMessage.textContent = result.error;
+                errorMessage.style.display = 'block';
+                
+                // 重新启用按钮
+                submitBtn.disabled = false;
+                submitBtn.textContent = '注册';
+            }
+        });
+    </script>
+</body>
+</html>

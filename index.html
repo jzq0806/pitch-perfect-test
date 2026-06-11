@@ -72,5 +72,12 @@
     <script src="js/audio.js"></script>
     <script src="js/game.js"></script>
     <script src="js/app.js"></script>
+    <script type="module">
+        // 加载认证模块
+        import authManager from './js/auth.js';
+        
+        // 认证模块会自动更新导航栏的 SIGN UP 和 LOGIN 链接
+        console.log('认证模块已加载');
+    </script>
 </body>
 </html>
