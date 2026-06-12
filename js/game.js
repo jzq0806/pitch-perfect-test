@@ -54,11 +54,10 @@ class PitchTestGame {
         const levelNames = {
             1: 'Level 1: 单音识别',
             2: 'Level 2: 音高对比',
-            3: 'Level 3: 音程计数',
-            4: 'Level 4: 旋律记忆',
-            5: 'Level 5: 双音同时识别',
-            6: 'Level 6: 节奏识别',
-            7: 'Level 7: 绝对音高挑战'
+            3: 'Level 3: 旋律记忆',
+            4: 'Level 4: 多音识别',
+            5: 'Level 5: 节奏识别',
+            6: 'Level 6: 绝对音高挑战'
         };
         return levelNames[this.currentLevel] || 'Unknown Level';
     }
@@ -95,20 +94,17 @@ class PitchTestGame {
             case 2: // 音高对比
                 await this.playLevel2Audio();
                 break;
-            case 3: // 音程计数
-                await this.playLevel3Audio();
+            case 3: // 旋律记忆（找缺失音）
+                await this.playLevel3MelodyMemory();
                 break;
-            case 4: // 旋律记忆
-                await this.playLevel5Audio();
+            case 4: // 多音识别
+                await this.playLevel4MultiNote();
                 break;
-            case 5: // 双音同时识别
-                await this.playLevel6Audio();
+            case 5: // 节奏识别
+                await this.playLevel5Rhythm();
                 break;
-            case 6: // 节奏识别
-                await this.playLevel7Audio();
-                break;
-            case 7: // 绝对音高挑战
-                await this.playLevel8Audio();
+            case 6: // 绝对音高挑战
+                await this.playLevel6AbsolutePitch();
                 break;
         }
     }
@@ -304,8 +300,107 @@ class PitchTestGame {
         await this.sleep(duration2);
     }
 
-    // Level 8: 绝对音高挑战
-    async playLevel8Audio() {
+    // Level 3: 旋律记忆（找缺失音）
+    async playLevel3MelodyMemory() {
+        const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C']; // Do-Do
+        const melodyLength = 4 + Math.floor(this.currentQuestion / 3); // 渐进难度：4-6个音
+        
+        // 生成完整旋律
+        const fullMelody = [];
+        for (let i = 0; i < melodyLength; i++) {
+            fullMelody.push(notes[Math.floor(Math.random() * notes.length)]);
+        }
+        
+        // 播放完整旋律
+        const duration1 = await audioEngine.playMelody(fullMelody, 4);
+        await this.sleep(duration1 + 800);
+        
+        // 随机选择一个位置缺失
+        const missingIndex = Math.floor(Math.random() * melodyLength);
+        this.correctAnswer = fullMelody[missingIndex];
+        
+        // 创建缺失旋律（用静音代替）
+        const incompleteMelody = [...fullMelody];
+        incompleteMelody[missingIndex] = null; // null 表示静音
+        
+        // 播放缺失旋律
+        const duration2 = await audioEngine.playMelodyWithGap(incompleteMelody, 4);
+        await this.sleep(duration2);
+    }
+
+    // Level 4: 多音识别（7双音 + 3三音）
+    async playLevel4MultiNote() {
+        const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        
+        // 前7题：双音，后3题：三音
+        const isTriple = this.currentQuestion > 7;
+        
+        if (isTriple) {
+            // 三音和弦
+            const chord = [];
+            for (let i = 0; i < 3; i++) {
+                let note;
+                do {
+                    note = notes[Math.floor(Math.random() * notes.length)];
+                } while (chord.includes(note));
+                chord.push(note);
+            }
+            this.correctAnswer = chord.sort();
+            
+            const duration = await audioEngine.playChord(chord, 4);
+            await this.sleep(duration + 500);
+            
+            // 重复一次
+            const duration2 = await audioEngine.playChord(chord, 4);
+            await this.sleep(duration2);
+        } else {
+            // 双音和弦
+            const note1 = notes[Math.floor(Math.random() * notes.length)];
+            let note2 = notes[Math.floor(Math.random() * notes.length)];
+            
+            while (note2 === note1) {
+                note2 = notes[Math.floor(Math.random() * notes.length)];
+            }
+            
+            this.correctAnswer = [note1, note2].sort();
+            
+            const duration = await audioEngine.playChord([note1, note2], 4);
+            await this.sleep(duration + 500);
+            
+            // 重复一次
+            const duration2 = await audioEngine.playChord([note1, note2], 4);
+            await this.sleep(duration2);
+        }
+    }
+
+    // Level 5: 节奏识别（空格键）
+    async playLevel5Rhythm() {
+        const rhythmPatterns = [
+            [1, 1, 1, 1],                    // 均匀四拍
+            [2, 1, 1],                       // 长短短
+            [1, 1, 2],                       // 短短长
+            [1, 0.5, 0.5, 1],                // 短-快快-短
+            [2, 2],                          // 长长
+            [0.5, 0.5, 0.5, 0.5, 1],         // 快快快快-短
+            [1, 0.5, 0.5, 0.5, 0.5, 1],      // 短-快快快快-短
+            [0.5, 0.5, 1, 0.5, 0.5, 1],      // 快快-短-快快-短
+            [1.5, 0.5, 1, 1],                // 附点-快-短-短
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1] // 快快快快快快-短
+        ];
+        
+        const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
+        this.correctAnswer = patternIndex;
+        
+        const duration = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
+        await this.sleep(duration + 400);
+        
+        // 重复一次
+        const duration2 = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
+        await this.sleep(duration2);
+    }
+
+    // Level 6: 绝对音高挑战
+    async playLevel6AbsolutePitch() {
         const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
         this.correctAnswer = notes[Math.floor(Math.random() * notes.length)];
         
@@ -320,23 +415,20 @@ class PitchTestGame {
         container.innerHTML = '';
         
         switch (this.currentLevel) {
-            case 1:
-            case 7:
+            case 1: // 单音识别
+            case 6: // 绝对音高
                 this.generateNoteOptions(container);
                 break;
-            case 2:
+            case 2: // 音高对比
                 this.generateComparisonOptions(container);
                 break;
-            case 3:
-                this.generateDistanceOptions(container);
+            case 3: // 旋律记忆（找缺失音）
+                this.generateNoteOptions(container);
                 break;
-            case 4:
-                this.generateSameOrDifferentOptions(container);
+            case 4: // 多音识别
+                this.generateMultiNoteOptions(container);
                 break;
-            case 5:
-                this.generateDualNoteOptions(container);
-                break;
-            case 6:
+            case 5: // 节奏识别
                 this.generateRhythmOptions(container);
                 break;
         }
@@ -504,24 +596,57 @@ class PitchTestGame {
         }
     }
 
-    // 选择双音选项（多选，最多2个）
-    selectDualOption(element) {
+    // 生成多音选项（Level 4：双音或三音）
+    generateMultiNoteOptions(container) {
+        const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const solfege = ['Do', 'Re', 'Mi', 'Fa', 'So', 'La', 'Ti'];
+        
+        // 判断是双音还是三音
+        const isTriple = this.currentQuestion > 7;
+        const maxSelection = isTriple ? 3 : 2;
+        
+        notes.forEach((note, index) => {
+            const bubble = document.createElement('div');
+            bubble.className = 'option-bubble';
+            bubble.textContent = solfege[index];
+            bubble.dataset.value = note;
+            
+            bubble.addEventListener('click', () => {
+                this.selectMultiOption(bubble, maxSelection);
+            });
+            
+            container.appendChild(bubble);
+        });
+        
+        // 添加提示文字
+        const hint = document.createElement('div');
+        hint.style.width = '100%';
+        hint.style.textAlign = 'center';
+        hint.style.marginTop = '20px';
+        hint.style.color = '#fff';
+        hint.style.fontSize = '14px';
+        hint.textContent = isTriple ? '选择 3 个音' : '选择 2 个音';
+        container.appendChild(hint);
+    }
+
+    // 选择多音选项（可选2个或3个）
+    selectMultiOption(element, maxSelection) {
         const selected = document.querySelectorAll('.option-bubble.selected');
         
         if (element.classList.contains('selected')) {
             element.classList.remove('selected');
         } else {
-            if (selected.length < 2) {
+            if (selected.length < maxSelection) {
                 element.classList.add('selected');
             } else {
-                // 已经选了2个，取消第一个
+                // 已经选满，取消第一个
                 selected[0].classList.remove('selected');
                 element.classList.add('selected');
             }
         }
         
         const nowSelected = document.querySelectorAll('.option-bubble.selected');
-        if (nowSelected.length === 2) {
+        if (nowSelected.length === maxSelection) {
             this.selectedAnswer = Array.from(nowSelected).map(el => el.dataset.value).sort();
             document.getElementById('submitBtn').disabled = false;
         } else {

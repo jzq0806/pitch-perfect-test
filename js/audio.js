@@ -138,6 +138,26 @@ class AudioEngine {
         return currentTime * 1000;
     }
 
+    // 播放带缺失的旋律（用于 Level 3）
+    async playMelodyWithGap(notes, octave = 4) {
+        const noteDuration = 0.4;
+        const gap = 0.1;
+        let currentTime = 0;
+        
+        notes.forEach(note => {
+            if (note === null) {
+                // 缺失的音：只留空白时间
+                currentTime += noteDuration + gap;
+            } else {
+                const frequency = this.getNoteFrequency(note, octave);
+                this.playNote(frequency, noteDuration, currentTime);
+                currentTime += noteDuration + gap;
+            }
+        });
+        
+        return currentTime * 1000;
+    }
+
     // 播放节奏（使用固定音高）
     async playRhythm(pattern) {
         // pattern 是一个数组，表示节奏型，例如 [1, 0.5, 0.5, 1]
