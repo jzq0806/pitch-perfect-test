@@ -388,13 +388,23 @@ class PitchTestGame {
         const isRhythmMode = this.currentQuestion <= 5;
         
         if (isRhythmMode) {
-            // 播放节奏模式
+            // 播放节奏模式 - 扩展题库
             const rhythmPatterns = [
                 [1, 1, 1, 1],                    // 均匀四拍
                 [2, 1, 1],                       // 长短短
                 [1, 1, 2],                       // 短短长
+                [1, 2, 1],                       // 短长短
+                [2, 2],                          // 长长
                 [1, 0.5, 0.5, 1],                // 短-快快-短
-                [2, 2]                           // 长长
+                [0.5, 0.5, 1, 1],                // 快快-短-短
+                [1, 1, 0.5, 0.5],                // 短-短-快快
+                [0.5, 0.5, 0.5, 0.5, 1],         // 快快快快-短
+                [1, 0.5, 0.5, 0.5, 0.5, 1],      // 短-快快快快-短
+                [0.5, 0.5, 1, 0.5, 0.5, 1],      // 快快-短-快快-短
+                [1.5, 0.5, 1, 1],                // 附点-快-短-短
+                [1, 1.5, 0.5, 1],                // 短-附点-快-短
+                [0.5, 1.5, 1, 1],                // 快-附点-短-短
+                [2, 0.5, 0.5, 1]                 // 长-快快-短
             ];
             
             const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
@@ -404,15 +414,29 @@ class PitchTestGame {
             // 播放节奏
             await this.playRhythmPattern(this.rhythmPattern);
         } else {
-            // 给音符模式
-            const notes = ['C', 'D', 'E', 'F', 'G'];
+            // 给音符模式 - 扩展题库
+            const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+            const rhythmPatterns = [
+                [1, 1, 1, 1],                    // 均匀四拍
+                [2, 1, 1],                       // 长短短
+                [1, 1, 2],                       // 短短长
+                [1, 2, 1],                       // 短长短
+                [2, 2],                          // 长长
+                [1, 0.5, 0.5, 1],                // 短-快快-短
+                [0.5, 0.5, 1, 1],                // 快快-短-短
+                [1, 1, 0.5, 0.5]                 // 短-短-快快
+            ];
+            
+            const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
+            this.rhythmPattern = rhythmPatterns[patternIndex];
+            this.correctAnswer = this.rhythmPattern;
+            
+            // 随机选择音符
             const selectedNotes = [];
-            for (let i = 0; i < 4; i++) {
+            const noteCount = this.rhythmPattern.length;
+            for (let i = 0; i < noteCount; i++) {
                 selectedNotes.push(notes[Math.floor(Math.random() * notes.length)]);
             }
-            
-            this.rhythmPattern = [1, 1, 1, 1]; // 均匀四拍
-            this.correctAnswer = this.rhythmPattern;
             this.rhythmNotes = selectedNotes;
             
             // 显示音符
@@ -466,7 +490,7 @@ class PitchTestGame {
         }, totalDuration);
     }
     
-    // 开始节拍器循环
+    // 开始节拍器循环（静音，仅视觉辅助）
     startMetronomeLoop() {
         const indicator = document.getElementById('metronomeIndicator');
         const beatNumbers = document.querySelectorAll('.beat-number');
@@ -487,8 +511,7 @@ class PitchTestGame {
                 }
             });
             
-            // 播放节拍器音效
-            audioEngine.playMetronomeClick();
+            // 节拍器静音，不播放音效
             
             currentBeat++;
         }, beatDuration);
@@ -581,7 +604,8 @@ class PitchTestGame {
             this.nextQuestion();
         } else {
             this.lives--;
-            this.showFeedback(false);
+            // Level 5 错误不显示用户答案，只显示错误提示
+            this.showLevel5Feedback();
             setTimeout(() => {
                 if (this.lives <= 0) {
                     this.endGame();
@@ -590,6 +614,18 @@ class PitchTestGame {
                 }
             }, 2500);
         }
+    }
+    
+    // Level 5 专用错误反馈（不显示用户答案）
+    showLevel5Feedback() {
+        const feedbackDiv = document.getElementById('answerFeedback');
+        feedbackDiv.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: rgba(248, 113, 113, 0.2); border-radius: 15px; margin: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
+                <div style="font-size: 24px; font-weight: bold; color: #f87171;">节奏不准确！</div>
+            </div>
+        `;
+        feedbackDiv.style.display = 'block';
     }
     
     // 开始录制用户节奏
@@ -657,7 +693,7 @@ class PitchTestGame {
     
     // 计算节奏准确度
     calculateRhythmAccuracy() {
-        const baseNoteDuration = 400;
+        const baseNoteDuration = 500; // 与节拍器同步
         
         // 计算标准节奏的时间点
         const expectedTaps = [];
@@ -665,7 +701,7 @@ class PitchTestGame {
         
         for (let duration of this.rhythmPattern) {
             expectedTaps.push(currentTime);
-            currentTime += duration * baseNoteDuration + 100; // 加上间隔
+            currentTime += duration * baseNoteDuration;
         }
         
         // 如果用户按键数量不对，直接返回0
@@ -675,14 +711,14 @@ class PitchTestGame {
         
         // 计算每个按键的误差
         let totalScore = 0;
-        const tolerance = 150; // 容差（ms）
+        const tolerance = 200; // 容差（ms）
         
         for (let i = 0; i < this.userTaps.length; i++) {
             const error = Math.abs(this.userTaps[i] - expectedTaps[i]);
             
-            if (error <= 50) {
+            if (error <= 100) {
                 totalScore += 100; // 完美
-            } else if (error <= 100) {
+            } else if (error <= 150) {
                 totalScore += 80; // 良好
             } else if (error <= tolerance) {
                 totalScore += 60; // 及格
