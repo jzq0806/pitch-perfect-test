@@ -672,14 +672,102 @@ class PitchTestGame {
         
         if (isCorrect) {
             this.correctAnswers++;
-            this.nextQuestion();
+            this.showFeedback(true);
+            setTimeout(() => this.nextQuestion(), 1500); // 1.5秒后进入下一题
         } else {
             this.lives--;
-            if (this.lives <= 0) {
-                this.endGame();
+            this.showFeedback(false);
+            setTimeout(() => {
+                if (this.lives <= 0) {
+                    this.endGame();
+                } else {
+                    this.nextQuestion();
+                }
+            }, 2500); // 2.5秒后进入下一题（给用户时间看正确答案）
+        }
+    }
+
+    // 显示答案反馈
+    showFeedback(isCorrect) {
+        const feedbackDiv = document.getElementById('answerFeedback');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // 禁用提交按钮
+        submitBtn.disabled = true;
+        
+        if (isCorrect) {
+            feedbackDiv.innerHTML = `
+                <div style="text-align: center; padding: 20px; background: rgba(74, 222, 128, 0.2); border-radius: 15px; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #4ade80;">正确！</div>
+                </div>
+            `;
+        } else {
+            const correctAnswerText = this.getCorrectAnswerText();
+            feedbackDiv.innerHTML = `
+                <div style="text-align: center; padding: 20px; background: rgba(248, 113, 113, 0.2); border-radius: 15px; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #f87171; margin-bottom: 15px;">错误！</div>
+                    <div style="font-size: 18px; color: #fff;">
+                        <div style="margin-bottom: 8px;">你的答案：<span style="color: #f87171;">${this.getAnswerText(this.selectedAnswer)}</span></div>
+                        <div>正确答案：<span style="color: #4ade80;">${correctAnswerText}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        feedbackDiv.style.display = 'block';
+        
+        // 隐藏选项
+        document.getElementById('optionsContainer').style.opacity = '0.5';
+    }
+
+    // 获取正确答案的文本表示
+    getCorrectAnswerText() {
+        if (Array.isArray(this.correctAnswer)) {
+            // 多音识别
+            return this.correctAnswer.map(note => audioEngine.getNoteSolfege(note)).join(' + ');
+        } else if (typeof this.correctAnswer === 'number') {
+            // 节奏识别或音程计数
+            if (this.currentLevel === 5) {
+                // 节奏识别
+                const rhythms = [
+                    '♩ ♩ ♩ ♩', '♩. ♩ ♩', '♩ ♩ ♩.', '♩ ♪♪ ♩', '♩. ♩.',
+                    '♪♪♪♪ ♩', '♩ ♪♪♪♪ ♩', '♪♪ ♩ ♪♪ ♩', '♩. ♪ ♩ ♩', '♪♪♪♪♪♪ ♩'
+                ];
+                return rhythms[this.correctAnswer];
             } else {
-                this.nextQuestion();
+                return this.correctAnswer + ' 个音';
             }
+        } else if (this.correctAnswer === 'higher' || this.correctAnswer === 'lower' || this.correctAnswer === 'same') {
+            // 音高对比
+            const map = { 'higher': '更高 ↑', 'lower': '更低 ↓', 'same': '相同 =' };
+            return map[this.correctAnswer];
+        } else {
+            // 单音识别
+            return audioEngine.getNoteSolfege(this.correctAnswer);
+        }
+    }
+
+    // 获取答案的文本表示
+    getAnswerText(answer) {
+        if (Array.isArray(answer)) {
+            return answer.map(note => audioEngine.getNoteSolfege(note)).join(' + ');
+        } else if (typeof answer === 'number') {
+            if (this.currentLevel === 5) {
+                const rhythms = [
+                    '♩ ♩ ♩ ♩', '♩. ♩ ♩', '♩ ♩ ♩.', '♩ ♪♪ ♩', '♩. ♩.',
+                    '♪♪♪♪ ♩', '♩ ♪♪♪♪ ♩', '♪♪ ♩ ♪♪ ♩', '♩. ♪ ♩ ♩', '♪♪♪♪♪♪ ♩'
+                ];
+                return rhythms[answer];
+            } else {
+                return answer + ' 个音';
+            }
+        } else if (answer === 'higher' || answer === 'lower' || answer === 'same') {
+            const map = { 'higher': '更高 ↑', 'lower': '更低 ↓', 'same': '相同 =' };
+            return map[answer];
+        } else {
+            return audioEngine.getNoteSolfege(answer);
         }
     }
 
@@ -699,6 +787,14 @@ class PitchTestGame {
 
     // 下一题
     nextQuestion() {
+        // 清除反馈
+        const feedbackDiv = document.getElementById('answerFeedback');
+        feedbackDiv.style.display = 'none';
+        feedbackDiv.innerHTML = '';
+        
+        // 恢复选项透明度
+        document.getElementById('optionsContainer').style.opacity = '1';
+        
         this.currentQuestion++;
         
         if (this.currentQuestion > this.totalQuestions) {

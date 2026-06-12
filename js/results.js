@@ -108,7 +108,7 @@ async function loadGlobalComparison() {
     }
 }
 
-function saveScore() {
+async function saveScore() {
     const resultsData = localStorage.getItem('pitchTestResults');
     
     if (!resultsData) {
@@ -128,13 +128,25 @@ function saveScore() {
     // 保存历史记录
     localStorage.setItem('pitchTestHistory', JSON.stringify(history));
     
-    alert('成绩已保存到本地历史！');
+    // 同时保存到云端
+    const saveResult = await dataSync.saveTestResult(results);
+    
+    if (saveResult.success) {
+        alert('成绩已保存到本地和云端！');
+    } else {
+        alert('成绩已保存到本地历史！（云端保存失败）');
+    }
 }
 
 function tryAgain() {
     // 返回首页
     window.location.href = 'index.html';
 }
+
+// 将函数暴露到全局作用域
+window.saveScore = saveScore;
+window.tryAgain = tryAgain;
+window.toggleVolume = toggleVolume;
 
 // 音量控制
 let isMuted = false;
