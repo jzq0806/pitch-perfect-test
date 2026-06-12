@@ -612,7 +612,25 @@ if (document.getElementById('optionsContainer')) {
     const urlParams = new URLSearchParams(window.location.search);
     const level = parseInt(urlParams.get('level')) || 1;
     
-    game.init(level);
+    // 开始按钮事件（移动端音频激活）
+    const startBtn = document.getElementById('startBtn');
+    const startOverlay = document.getElementById('startOverlay');
+    
+    if (startBtn && startOverlay) {
+        startBtn.addEventListener('click', async () => {
+            // 激活 AudioContext
+            if (audioEngine.audioContext.state === 'suspended') {
+                await audioEngine.audioContext.resume();
+                console.log('AudioContext 已激活');
+            }
+            
+            // 隐藏开始按钮
+            startOverlay.style.display = 'none';
+            
+            // 开始游戏
+            game.init(level);
+        });
+    }
     
     // 提交按钮事件
     document.getElementById('submitBtn').addEventListener('click', () => {
