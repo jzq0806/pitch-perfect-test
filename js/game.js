@@ -44,7 +44,7 @@ class PitchTestGame {
         const levelNames = {
             1: 'Level 1: 单音识别',
             2: 'Level 2: 音高对比',
-            3: 'Level 3: 音高距离感知',
+            3: 'Level 3: 音程计数',
             4: 'Level 4: 旋律记忆',
             5: 'Level 5: 双音同时识别',
             6: 'Level 6: 节奏识别',
@@ -156,27 +156,33 @@ class PitchTestGame {
         await this.sleep(noteDuration);
     }
 
-    // Level 4: 音高距离感知
+    // Level 4: 音程计数（改版）
     async playLevel4Audio() {
+        // 先播放完整音阶
+        const scaleDuration = await audioEngine.playScale('C', 4);
+        await this.sleep(scaleDuration + 500);
+        
+        // 随机选择两个音
         const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-        const note1 = notes[Math.floor(Math.random() * notes.length)];
-        let note2 = notes[Math.floor(Math.random() * notes.length)];
+        const index1 = Math.floor(Math.random() * notes.length);
+        let index2 = Math.floor(Math.random() * notes.length);
         
-        while (note2 === note1) {
-            note2 = notes[Math.floor(Math.random() * notes.length)];
+        // 确保两个音不同
+        while (index2 === index1) {
+            index2 = Math.floor(Math.random() * notes.length);
         }
         
-        const distance = audioEngine.getNoteDistance(note1, note2);
+        // 确保 index1 < index2（从低到高）
+        const startIndex = Math.min(index1, index2);
+        const endIndex = Math.max(index1, index2);
         
-        // 更精确的距离分类
-        if (distance === 1) {
-            this.correctAnswer = 'close';  // 半音或全音
-        } else if (distance === 2 || distance === 3) {
-            this.correctAnswer = 'medium'; // 小三度到纯四度
-        } else {
-            this.correctAnswer = 'far';    // 纯五度以上
-        }
+        const note1 = notes[startIndex];
+        const note2 = notes[endIndex];
         
+        // 计算中间有几个音（不包括起始和结束音）
+        this.correctAnswer = endIndex - startIndex - 1;
+        
+        // 播放两个音
         const duration = await audioEngine.playTwoNotes(note1, note2, 4);
         await this.sleep(duration);
     }
@@ -354,12 +360,15 @@ class PitchTestGame {
         });
     }
 
-    // 生成距离选项
+    // 生成音程计数选项（0-6个音）
     generateDistanceOptions(container) {
         const options = [
-            { text: '很近 • •', value: 'close' },
-            { text: '中等 • · · •', value: 'medium' },
-            { text: '很远 • · · · · •', value: 'far' }
+            { text: '0 个音', value: 0 },
+            { text: '1 个音', value: 1 },
+            { text: '2 个音', value: 2 },
+            { text: '3 个音', value: 3 },
+            { text: '4 个音', value: 4 },
+            { text: '5 个音', value: 5 }
         ];
         
         options.forEach(option => {
