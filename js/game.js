@@ -381,52 +381,214 @@ class PitchTestGame {
         }
     }
 
-    // Level 5: 节奏识别（空格键）
+    // Level 5: 节奏识别（音游风格）
     async playLevel5Rhythm() {
-        const rhythmPatterns = [
-            [1, 1, 1, 1],                    // 均匀四拍
-            [2, 1, 1],                       // 长短短
-            [1, 1, 2],                       // 短短长
-            [1, 0.5, 0.5, 1],                // 短-快快-短
-            [2, 2],                          // 长长
-            [0.5, 0.5, 0.5, 0.5, 1],         // 快快快快-短
-            [1, 0.5, 0.5, 0.5, 0.5, 1],      // 短-快快快快-短
-            [0.5, 0.5, 1, 0.5, 0.5, 1],      // 快快-短-快快-短
-            [1.5, 0.5, 1, 1],                // 附点-快-短-短
-            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1] // 快快快快快快-短
-        ];
+        // 前5题：播放节奏，用户模仿
+        // 后5题：给音符，用户打节拍
+        const isRhythmMode = this.currentQuestion <= 5;
         
-        const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
-        this.rhythmPattern = rhythmPatterns[patternIndex];
-        this.correctAnswer = patternIndex;
+        if (isRhythmMode) {
+            // 播放节奏模式
+            const rhythmPatterns = [
+                [1, 1, 1, 1],                    // 均匀四拍
+                [2, 1, 1],                       // 长短短
+                [1, 1, 2],                       // 短短长
+                [1, 0.5, 0.5, 1],                // 短-快快-短
+                [2, 2]                           // 长长
+            ];
+            
+            const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
+            this.rhythmPattern = rhythmPatterns[patternIndex];
+            this.correctAnswer = this.rhythmPattern;
+            
+            // 播放节奏
+            await this.playRhythmPattern(this.rhythmPattern);
+        } else {
+            // 给音符模式
+            const notes = ['C', 'D', 'E', 'F', 'G'];
+            const selectedNotes = [];
+            for (let i = 0; i < 4; i++) {
+                selectedNotes.push(notes[Math.floor(Math.random() * notes.length)]);
+            }
+            
+            this.rhythmPattern = [1, 1, 1, 1]; // 均匀四拍
+            this.correctAnswer = this.rhythmPattern;
+            this.rhythmNotes = selectedNotes;
+            
+            // 显示音符
+            document.getElementById('rhythmHint').textContent = 
+                `按节拍点击靶子：${selectedNotes.map(n => audioEngine.getNoteSolfege(n)).join(' - ')}`;
+        }
         
-        // 播放节奏并显示节拍器
-        await this.playRhythmWithMetronome(this.rhythmPattern);
-        
-        // 播放完毕后，开始录制用户节奏
-        this.startRhythmRecording();
+        // 开始音游模式
+        this.startRhythmGame();
     }
     
-    // 播放节奏并显示节拍器
-    async playRhythmWithMetronome(pattern) {
-        const metronomeCircle = document.getElementById('metronomeCircle');
-        const baseNoteDuration = 400; // 基础音符时长（ms）
+    // 播放节奏模式
+    async playRhythmPattern(pattern) {
+        const baseNoteDuration = 500; // 基础音符时长（ms）
         
         for (let duration of pattern) {
-            // 节拍器闪烁
-            metronomeCircle.classList.add('beat');
-            
-            // 播放音符
-            await audioEngine.playRhythmBeat();
+            // 播放节拍器音效
+            await audioEngine.playMetronomeClick();
             
             // 等待音符时长
             await this.sleep(duration * baseNoteDuration);
+        }
+    }
+    
+    // 开始音游模式
+    startRhythmGame() {
+        // 隐藏音频状态和选项
+        document.getElementById('audioStatus').style.display = 'none';
+        document.getElementById('optionsContainer').style.display = 'none';
+        
+        // 显示音游界面
+        document.getElementById('rhythmGame').style.display = 'flex';
+        
+        // 初始化用户点击记录
+        this.userTaps = [];
+        this.rhythmStartTime = Date.now();
+        this.isRecordingRhythm = true;
+        
+        // 开始节拍器循环
+        this.startMetronomeLoop();
+        
+        // 监听靶子点击
+        const target = document.getElementById('rhythmTarget');
+        target.addEventListener('click', () => this.onTargetClick());
+        
+        // 设置录制时长（根据节奏模式）
+        const totalDuration = this.rhythmPattern.reduce((a, b) => a + b, 0) * 500 + 3000;
+        
+        setTimeout(() => {
+            this.stopRhythmGame();
+        }, totalDuration);
+    }
+    
+    // 开始节拍器循环
+    startMetronomeLoop() {
+        const indicator = document.getElementById('metronomeIndicator');
+        const beatNumbers = document.querySelectorAll('.beat-number');
+        const beatDuration = 500; // 每拍500ms
+        let currentBeat = 0;
+        
+        this.metronomeInterval = setInterval(() => {
+            // 更新指示器位置
+            const progress = (currentBeat % 4) * 25; // 0%, 25%, 50%, 75%
+            indicator.style.left = progress + '%';
             
-            // 移除闪烁
-            metronomeCircle.classList.remove('beat');
+            // 高亮当前拍子
+            beatNumbers.forEach((num, index) => {
+                if (index === currentBeat % 4) {
+                    num.classList.add('active');
+                } else {
+                    num.classList.remove('active');
+                }
+            });
             
-            // 音符间隔
-            await this.sleep(100);
+            // 播放节拍器音效
+            audioEngine.playMetronomeClick();
+            
+            currentBeat++;
+        }, beatDuration);
+    }
+    
+    // 靶子点击事件
+    onTargetClick() {
+        if (!this.isRecordingRhythm) return;
+        
+        const tapTime = Date.now() - this.rhythmStartTime;
+        this.userTaps.push(tapTime);
+        
+        // 靶子动画
+        const target = document.getElementById('rhythmTarget');
+        target.classList.add('hit');
+        setTimeout(() => target.classList.remove('hit'), 300);
+        
+        // 播放点击音效
+        audioEngine.playMetronomeClick();
+        
+        // 更新反馈
+        const feedbackDiv = document.getElementById('rhythmFeedback');
+        feedbackDiv.textContent = `已点击 ${this.userTaps.length} 次`;
+    }
+    
+    // 停止音游模式
+    stopRhythmGame() {
+        this.isRecordingRhythm = false;
+        
+        // 停止节拍器循环
+        if (this.metronomeInterval) {
+            clearInterval(this.metronomeInterval);
+            this.metronomeInterval = null;
+        }
+        
+        // 计算准确度
+        const accuracy = this.calculateRhythmAccuracy();
+        
+        // 显示结果
+        this.showRhythmGameResult(accuracy);
+    }
+    
+    // 显示音游结果
+    showRhythmGameResult(accuracy) {
+        const feedbackDiv = document.getElementById('rhythmFeedback');
+        const target = document.getElementById('rhythmTarget');
+        
+        const isCorrect = accuracy >= 60;
+        
+        if (isCorrect) {
+            target.classList.add('correct');
+            feedbackDiv.innerHTML = `
+                <div style="font-size: 24px; color: #4ade80; font-weight: bold;">✓ 正确！</div>
+                <div>准确度：${accuracy}%</div>
+            `;
+            this.selectedAnswer = this.correctAnswer;
+        } else {
+            target.classList.add('incorrect');
+            feedbackDiv.innerHTML = `
+                <div style="font-size: 24px; color: #f87171; font-weight: bold;">✗ 错误</div>
+                <div>准确度：${accuracy}%</div>
+                <div style="font-size: 14px; margin-top: 10px;">需要 ≥60% 才能通过</div>
+            `;
+            this.selectedAnswer = null;
+        }
+        
+        // 2秒后自动提交
+        setTimeout(() => {
+            this.submitRhythmGameAnswer(isCorrect);
+        }, 2000);
+    }
+    
+    // 提交音游答案
+    submitRhythmGameAnswer(isCorrect) {
+        // 隐藏音游界面
+        document.getElementById('rhythmGame').style.display = 'none';
+        
+        const responseTime = Date.now() - this.questionStartTime;
+        
+        this.answers.push({
+            question: this.currentQuestion,
+            correct: isCorrect,
+            responseTime: responseTime,
+            selectedAnswer: this.selectedAnswer,
+            correctAnswer: this.correctAnswer
+        });
+        
+        if (isCorrect) {
+            this.correctAnswers++;
+            this.nextQuestion();
+        } else {
+            this.lives--;
+            this.showFeedback(false);
+            setTimeout(() => {
+                if (this.lives <= 0) {
+                    this.endGame();
+                } else {
+                    this.nextQuestion();
+                }
+            }, 2500);
         }
     }
     

@@ -222,28 +222,42 @@ class AudioEngine {
         return 'same';
     }
     
-    // 播放节奏拍子（用于 Level 5）
-    async playRhythmBeat() {
-        const frequency = 440; // A4
-        const duration = 0.1; // 短促的拍子声
-        
+    // 播放节拍器音效（木质敲击声）
+    async playMetronomeClick() {
         const now = this.audioContext.currentTime;
-        const oscillator = this.audioContext.createOscillator();
+        
+        // 使用白噪声 + 滤波器模拟木质敲击声
+        const noiseBuffer = this.audioContext.createBuffer(1, this.audioContext.sampleRate * 0.05, this.audioContext.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        
+        // 生成白噪声
+        for (let i = 0; i < output.length; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        // 低通滤波器（模拟木质音色）
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.Q.setValueAtTime(1, now);
+        
+        // 增益包络（快速衰减）
         const gainNode = this.audioContext.createGain();
+        gainNode.gain.setValueAtTime(this.masterVolume * 0.8, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
         
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, now);
-        
-        gainNode.gain.setValueAtTime(this.masterVolume, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-        
-        oscillator.connect(gainNode);
+        // 连接节点
+        noise.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
         
-        oscillator.start(now);
-        oscillator.stop(now + duration);
+        noise.start(now);
+        noise.stop(now + 0.05);
         
-        return duration * 1000; // 返回毫秒
+        return 50; // 返回毫秒
     }
 }
 

@@ -51,10 +51,33 @@
             <!-- 动态显示正确答案 -->
         </div>
 
-        <!-- 节拍器区域（Level 5 专用） -->
-        <div class="rhythm-metronome" id="rhythmMetronome" style="display: none;">
-            <div class="metronome-circle" id="metronomeCircle"></div>
-            <div class="rhythm-hint" id="rhythmHint">按空格键模仿节奏</div>
+        <!-- 节拍器区域（Level 5 专用 - 音游风格） -->
+        <div class="rhythm-game" id="rhythmGame" style="display: none;">
+            <!-- 顶部节拍器进度条 -->
+            <div class="metronome-bar">
+                <div class="beat-number">1</div>
+                <div class="beat-number">2</div>
+                <div class="beat-number">3</div>
+                <div class="beat-number">4</div>
+            </div>
+            <div class="metronome-progress">
+                <div class="metronome-indicator" id="metronomeIndicator"></div>
+            </div>
+            
+            <!-- 提示文字 -->
+            <div class="rhythm-hint" id="rhythmHint">听完节奏后，点击靶子模仿节拍</div>
+            
+            <!-- 靶子 -->
+            <div class="target-container">
+                <div class="target" id="rhythmTarget">
+                    <div class="target-ring target-ring-1"></div>
+                    <div class="target-ring target-ring-2"></div>
+                    <div class="target-ring target-ring-3"></div>
+                    <div class="target-center"></div>
+                </div>
+            </div>
+            
+            <!-- 反馈信息 -->
             <div class="rhythm-feedback" id="rhythmFeedback"></div>
         </div>
 

@@ -461,99 +461,166 @@ h1 {
     }
 }
 
-/* 节拍器样式（Level 5 专用） */
-.rhythm-metronome {
+/* 节拍器样式（Level 5 专用 - 音游风格） */
+.rhythm-game {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 30px;
-    padding: 40px;
-    min-height: 400px;
+    padding: 40px 20px;
+    min-height: 500px;
 }
 
-.metronome-circle {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 4px solid rgba(255, 255, 255, 0.3);
+/* 顶部节拍器进度条 */
+.metronome-bar {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.1s ease;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 10px;
 }
 
-.metronome-circle.beat {
-    background: rgba(74, 222, 128, 0.5);
-    border-color: #4ade80;
-    transform: scale(1.1);
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.6);
-}
-
-.metronome-circle.user-tap {
-    background: rgba(96, 165, 250, 0.5);
-    border-color: #60a5fa;
-    transform: scale(1.1);
-    box-shadow: 0 0 30px rgba(96, 165, 250, 0.6);
-}
-
-.metronome-circle.correct {
-    background: rgba(74, 222, 128, 0.5);
-    border-color: #4ade80;
-}
-
-.metronome-circle.incorrect {
-    background: rgba(248, 113, 113, 0.5);
-    border-color: #f87171;
-}
-
-.rhythm-hint {
+.beat-number {
     font-size: 24px;
-    font-weight: 600;
-    color: #fff;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.6);
+    width: 60px;
     text-align: center;
 }
 
+.beat-number.active {
+    color: #fff;
+    transform: scale(1.2);
+    transition: all 0.2s;
+}
+
+.metronome-progress {
+    width: 100%;
+    max-width: 800px;
+    height: 60px;
+    background: linear-gradient(90deg, #60a5fa 0%, #818cf8 100%);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+
+.metronome-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+    transition: left 0.1s linear;
+}
+
+/* 提示文字 */
+.rhythm-hint {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* 靶子容器 */
+.target-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+/* 靶子 */
+.target {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.target:hover {
+    transform: scale(1.05);
+}
+
+.target:active {
+    transform: scale(0.95);
+}
+
+.target-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid #fff;
+}
+
+.target-ring-1 {
+    width: 100%;
+    height: 100%;
+    background: rgba(96, 165, 250, 0.3);
+    top: 0;
+    left: 0;
+}
+
+.target-ring-2 {
+    width: 66%;
+    height: 66%;
+    background: rgba(129, 140, 248, 0.4);
+    top: 17%;
+    left: 17%;
+}
+
+.target-ring-3 {
+    width: 33%;
+    height: 33%;
+    background: rgba(165, 180, 252, 0.5);
+    top: 33.5%;
+    left: 33.5%;
+}
+
+.target-center {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: #6366f1;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+}
+
+.target.hit {
+    animation: target-hit 0.3s;
+}
+
+@keyframes target-hit {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.target.correct .target-center {
+    background: #4ade80;
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.8);
+}
+
+.target.incorrect .target-center {
+    background: #f87171;
+    box-shadow: 0 0 30px rgba(248, 113, 113, 0.8);
+}
+
+/* 反馈信息 */
 .rhythm-feedback {
     font-size: 18px;
     color: #fff;
     text-align: center;
     min-height: 60px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.rhythm-feedback .tap-indicator {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin: 0 4px;
-}
-
-.rhythm-feedback .tap-correct {
-    background: #4ade80;
-}
-
-.rhythm-feedback .tap-incorrect {
-    background: #f87171;
-}
-
-.rhythm-feedback .tap-missed {
-    background: #fbbf24;
-}
-
-/* 节拍器动画 */
-@keyframes beat-pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-    100% {
-        transform: scale(1);
-    }
 }
