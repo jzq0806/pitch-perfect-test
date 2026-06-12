@@ -85,8 +85,8 @@ class PitchTestGame {
             case 2: // 音高对比
                 await this.playLevel2Audio();
                 break;
-            case 3: // 音高距离感知
-                await this.playLevel4Audio();
+            case 3: // 音程计数
+                await this.playLevel3Audio();
                 break;
             case 4: // 旋律记忆
                 await this.playLevel5Audio();
@@ -138,22 +138,35 @@ class PitchTestGame {
         await this.sleep(duration);
     }
 
-    // Level 3: 单音识别 - 其他调
+    // Level 3: 音程计数
     async playLevel3Audio() {
-        const scales = ['G', 'F', 'D'];
-        const scale = scales[Math.floor(Math.random() * scales.length)];
-        
-        // 播放音阶
-        const scaleDuration = await audioEngine.playScale(scale, 4);
+        // 先播放完整音阶 Do-Re-Mi-Fa-So-La-Ti-Do
+        const scaleDuration = await audioEngine.playScale('C', 4);
         await this.sleep(scaleDuration + 500);
         
-        // 随机选择一个音
+        // 随机选择两个音
         const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-        this.correctAnswer = notes[Math.floor(Math.random() * notes.length)];
+        const index1 = Math.floor(Math.random() * notes.length);
+        let index2 = Math.floor(Math.random() * notes.length);
         
-        // 播放随机音
-        const noteDuration = await audioEngine.playRandomNote(this.correctAnswer, 4);
-        await this.sleep(noteDuration);
+        // 确保两个音不同
+        while (index2 === index1) {
+            index2 = Math.floor(Math.random() * notes.length);
+        }
+        
+        // 确保 index1 < index2（从低到高）
+        const startIndex = Math.min(index1, index2);
+        const endIndex = Math.max(index1, index2);
+        
+        const note1 = notes[startIndex];
+        const note2 = notes[endIndex];
+        
+        // 计算中间有几个音（不包括起始和结束音）
+        this.correctAnswer = endIndex - startIndex - 1;
+        
+        // 播放两个音
+        const duration = await audioEngine.playTwoNotes(note1, note2, 4);
+        await this.sleep(duration);
     }
 
     // Level 4: 音程计数（改版）
