@@ -4,6 +4,11 @@ import dataSync from './data-sync.js';
 document.addEventListener('DOMContentLoaded', () => {
     loadResults();
     loadGlobalComparison();
+    
+    // 绑定按钮事件
+    document.getElementById('saveScoreBtn').addEventListener('click', saveScore);
+    document.getElementById('tryAgainBtn').addEventListener('click', tryAgain);
+    document.getElementById('volumeBtn').addEventListener('click', toggleVolume);
 });
 
 async function loadResults() {
@@ -143,11 +148,6 @@ function tryAgain() {
     window.location.href = 'index.html';
 }
 
-// 将函数暴露到全局作用域
-window.saveScore = saveScore;
-window.tryAgain = tryAgain;
-window.toggleVolume = toggleVolume;
-
 // 音量控制
 let isMuted = false;
 
@@ -157,9 +157,13 @@ function toggleVolume() {
     
     if (isMuted) {
         volumeBtn.textContent = '🔇';
-        audioEngine.setVolume(0);
+        if (typeof audioEngine !== 'undefined') {
+            audioEngine.setVolume(0);
+        }
     } else {
         volumeBtn.textContent = '🔊';
-        audioEngine.setVolume(0.3);
+        if (typeof audioEngine !== 'undefined') {
+            audioEngine.setVolume(0.3);
+        }
     }
 }
