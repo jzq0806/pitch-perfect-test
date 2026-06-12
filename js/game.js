@@ -672,8 +672,8 @@ class PitchTestGame {
         
         if (isCorrect) {
             this.correctAnswers++;
-            this.showFeedback(true);
-            setTimeout(() => this.nextQuestion(), 1500); // 1.5秒后进入下一题
+            // 答对直接进入下一题，不显示反馈
+            this.nextQuestion();
         } else {
             this.lives--;
             this.showFeedback(false);
