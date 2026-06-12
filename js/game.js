@@ -16,23 +16,13 @@ class PitchTestGame {
     }
 
     // 初始化游戏
-    async init(level) {
+    init(level) {
         this.currentLevel = level;
         this.currentQuestion = 1;
         this.lives = 2;
         this.correctAnswers = 0;
         this.answers = [];
         this.startTime = Date.now();
-        
-        // 激活 AudioContext（移动端必需）
-        if (audioEngine.audioContext.state === 'suspended') {
-            try {
-                await audioEngine.audioContext.resume();
-                console.log('游戏页面：AudioContext 已激活');
-            } catch (error) {
-                console.error('激活 AudioContext 失败:', error);
-            }
-        }
         
         this.updateUI();
         this.startQuestion();
