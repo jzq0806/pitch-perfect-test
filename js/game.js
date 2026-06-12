@@ -13,6 +13,14 @@ class PitchTestGame {
         this.selectedAnswer = null;
         this.correctAnswer = null;
         this.isPlaying = false;
+        this.usedQuestions = new Set(); // 记录已使用的题目
+        
+        // Level 5 节奏识别专用
+        this.rhythmPattern = null;
+        this.userTaps = [];
+        this.rhythmStartTime = null;
+        this.isRecordingRhythm = false;
+        this.spaceKeyHandler = null;
     }
 
     // 初始化游戏
@@ -389,14 +397,201 @@ class PitchTestGame {
         ];
         
         const patternIndex = Math.floor(Math.random() * rhythmPatterns.length);
+        this.rhythmPattern = rhythmPatterns[patternIndex];
         this.correctAnswer = patternIndex;
         
-        const duration = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
-        await this.sleep(duration + 400);
+        // 播放节奏并显示节拍器
+        await this.playRhythmWithMetronome(this.rhythmPattern);
         
-        // 重复一次
-        const duration2 = await audioEngine.playRhythm(rhythmPatterns[patternIndex]);
-        await this.sleep(duration2);
+        // 播放完毕后，开始录制用户节奏
+        this.startRhythmRecording();
+    }
+    
+    // 播放节奏并显示节拍器
+    async playRhythmWithMetronome(pattern) {
+        const metronomeCircle = document.getElementById('metronomeCircle');
+        const baseNoteDuration = 400; // 基础音符时长（ms）
+        
+        for (let duration of pattern) {
+            // 节拍器闪烁
+            metronomeCircle.classList.add('beat');
+            
+            // 播放音符
+            await audioEngine.playRhythmBeat();
+            
+            // 等待音符时长
+            await this.sleep(duration * baseNoteDuration);
+            
+            // 移除闪烁
+            metronomeCircle.classList.remove('beat');
+            
+            // 音符间隔
+            await this.sleep(100);
+        }
+    }
+    
+    // 开始录制用户节奏
+    startRhythmRecording() {
+        this.userTaps = [];
+        this.rhythmStartTime = Date.now();
+        this.isRecordingRhythm = true;
+        
+        // 显示节拍器和提示
+        document.getElementById('rhythmMetronome').style.display = 'flex';
+        document.getElementById('rhythmHint').textContent = '按空格键模仿节奏';
+        
+        // 监听空格键
+        this.spaceKeyHandler = (e) => {
+            if (e.code === 'Space' && this.isRecordingRhythm) {
+                e.preventDefault();
+                this.recordTap();
+            }
+        };
+        
+        document.addEventListener('keydown', this.spaceKeyHandler);
+        
+        // 设置录制时长（节奏总时长 + 2秒缓冲）
+        const totalDuration = this.rhythmPattern.reduce((a, b) => a + b, 0) * 400 + 2000;
+        
+        setTimeout(() => {
+            this.stopRhythmRecording();
+        }, totalDuration);
+    }
+    
+    // 记录用户按键
+    recordTap() {
+        const tapTime = Date.now() - this.rhythmStartTime;
+        this.userTaps.push(tapTime);
+        
+        // 节拍器闪烁反馈
+        const metronomeCircle = document.getElementById('metronomeCircle');
+        metronomeCircle.classList.add('user-tap');
+        
+        setTimeout(() => {
+            metronomeCircle.classList.remove('user-tap');
+        }, 100);
+        
+        // 更新反馈显示
+        const feedbackDiv = document.getElementById('rhythmFeedback');
+        feedbackDiv.innerHTML = `已记录 ${this.userTaps.length} 次按键`;
+    }
+    
+    // 停止录制并评分
+    stopRhythmRecording() {
+        this.isRecordingRhythm = false;
+        
+        // 移除空格键监听
+        if (this.spaceKeyHandler) {
+            document.removeEventListener('keydown', this.spaceKeyHandler);
+            this.spaceKeyHandler = null;
+        }
+        
+        // 计算准确度
+        const accuracy = this.calculateRhythmAccuracy();
+        
+        // 显示结果
+        this.showRhythmResult(accuracy);
+    }
+    
+    // 计算节奏准确度
+    calculateRhythmAccuracy() {
+        const baseNoteDuration = 400;
+        
+        // 计算标准节奏的时间点
+        const expectedTaps = [];
+        let currentTime = 0;
+        
+        for (let duration of this.rhythmPattern) {
+            expectedTaps.push(currentTime);
+            currentTime += duration * baseNoteDuration + 100; // 加上间隔
+        }
+        
+        // 如果用户按键数量不对，直接返回0
+        if (this.userTaps.length !== expectedTaps.length) {
+            return 0;
+        }
+        
+        // 计算每个按键的误差
+        let totalScore = 0;
+        const tolerance = 150; // 容差（ms）
+        
+        for (let i = 0; i < this.userTaps.length; i++) {
+            const error = Math.abs(this.userTaps[i] - expectedTaps[i]);
+            
+            if (error <= 50) {
+                totalScore += 100; // 完美
+            } else if (error <= 100) {
+                totalScore += 80; // 良好
+            } else if (error <= tolerance) {
+                totalScore += 60; // 及格
+            } else {
+                totalScore += 0; // 失败
+            }
+        }
+        
+        return Math.round(totalScore / this.userTaps.length);
+    }
+    
+    // 显示节奏结果
+    showRhythmResult(accuracy) {
+        const feedbackDiv = document.getElementById('rhythmFeedback');
+        const metronomeCircle = document.getElementById('metronomeCircle');
+        
+        // 根据准确度判断是否正确
+        const isCorrect = accuracy >= 60;
+        
+        if (isCorrect) {
+            metronomeCircle.classList.add('correct');
+            feedbackDiv.innerHTML = `
+                <div style="font-size: 24px; color: #4ade80; font-weight: bold;">✓ 正确！</div>
+                <div>准确度：${accuracy}%</div>
+            `;
+            this.selectedAnswer = this.correctAnswer;
+        } else {
+            metronomeCircle.classList.add('incorrect');
+            feedbackDiv.innerHTML = `
+                <div style="font-size: 24px; color: #f87171; font-weight: bold;">✗ 错误</div>
+                <div>准确度：${accuracy}%</div>
+                <div style="font-size: 14px; margin-top: 10px;">需要 ≥60% 才能通过</div>
+            `;
+            this.selectedAnswer = -1; // 标记为错误
+        }
+        
+        // 2秒后自动提交
+        setTimeout(() => {
+            this.submitRhythmAnswer(isCorrect);
+        }, 2000);
+    }
+    
+    // 提交节奏答案
+    submitRhythmAnswer(isCorrect) {
+        // 隐藏节拍器
+        document.getElementById('rhythmMetronome').style.display = 'none';
+        
+        const responseTime = Date.now() - this.questionStartTime;
+        
+        this.answers.push({
+            question: this.currentQuestion,
+            correct: isCorrect,
+            responseTime: responseTime,
+            selectedAnswer: this.selectedAnswer,
+            correctAnswer: this.correctAnswer
+        });
+        
+        if (isCorrect) {
+            this.correctAnswers++;
+            this.nextQuestion();
+        } else {
+            this.lives--;
+            this.showFeedback(false);
+            setTimeout(() => {
+                if (this.lives <= 0) {
+                    this.endGame();
+                } else {
+                    this.nextQuestion();
+                }
+            }, 2500);
+        }
     }
 
     // Level 6: 绝对音高挑战
@@ -414,6 +609,11 @@ class PitchTestGame {
         const container = document.getElementById('optionsContainer');
         container.innerHTML = '';
         
+        // Level 5 不需要生成选项，直接返回
+        if (this.currentLevel === 5) {
+            return;
+        }
+        
         switch (this.currentLevel) {
             case 1: // 单音识别
             case 6: // 绝对音高
@@ -427,9 +627,6 @@ class PitchTestGame {
                 break;
             case 4: // 多音识别
                 this.generateMultiNoteOptions(container);
-                break;
-            case 5: // 节奏识别
-                this.generateRhythmOptions(container);
                 break;
         }
     }

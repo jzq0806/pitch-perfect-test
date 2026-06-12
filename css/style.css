@@ -460,3 +460,100 @@ h1 {
         width: 100%;
     }
 }
+
+/* 节拍器样式（Level 5 专用） */
+.rhythm-metronome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 40px;
+    min-height: 400px;
+}
+
+.metronome-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+}
+
+.metronome-circle.beat {
+    background: rgba(74, 222, 128, 0.5);
+    border-color: #4ade80;
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.6);
+}
+
+.metronome-circle.user-tap {
+    background: rgba(96, 165, 250, 0.5);
+    border-color: #60a5fa;
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(96, 165, 250, 0.6);
+}
+
+.metronome-circle.correct {
+    background: rgba(74, 222, 128, 0.5);
+    border-color: #4ade80;
+}
+
+.metronome-circle.incorrect {
+    background: rgba(248, 113, 113, 0.5);
+    border-color: #f87171;
+}
+
+.rhythm-hint {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+}
+
+.rhythm-feedback {
+    font-size: 18px;
+    color: #fff;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rhythm-feedback .tap-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 4px;
+}
+
+.rhythm-feedback .tap-correct {
+    background: #4ade80;
+}
+
+.rhythm-feedback .tap-incorrect {
+    background: #f87171;
+}
+
+.rhythm-feedback .tap-missed {
+    background: #fbbf24;
+}
+
+/* 节拍器动画 */
+@keyframes beat-pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}

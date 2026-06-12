@@ -221,6 +221,30 @@ class AudioEngine {
         if (index1 > index2) return 'lower';
         return 'same';
     }
+    
+    // 播放节奏拍子（用于 Level 5）
+    async playRhythmBeat() {
+        const frequency = 440; // A4
+        const duration = 0.1; // 短促的拍子声
+        
+        const now = this.audioContext.currentTime;
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, now);
+        
+        gainNode.gain.setValueAtTime(this.masterVolume, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.start(now);
+        oscillator.stop(now + duration);
+        
+        return duration * 1000; // 返回毫秒
+    }
 }
 
 // 导出全局实例
